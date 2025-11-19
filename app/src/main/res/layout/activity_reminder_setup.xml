@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/txtReminderSetupTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="When should this reminder fire?"
+        android:textSize="18sp"
+        android:paddingBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnIn5Min"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="In 5 minutes" />
+
+    <Button
+        android:id="@+id/btnIn30Min"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="In 30 minutes"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnIn1Hour"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="In 1 hour"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnCustomTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose custom date &amp; time"
+        android:layout_marginTop="16dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/btnCancelReminderSetup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

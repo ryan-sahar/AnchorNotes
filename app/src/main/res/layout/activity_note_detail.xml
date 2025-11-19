@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/edtTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Title" />
+
+    <EditText
+        android:id="@+id/edtContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="top"
+        android:hint="Content"
+        android:inputType="textMultiLine"
+        android:minLines="5" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Note" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete Note"
+        android:layout_marginTop="8dp" />
+
+    <!-- Time reminder controls -->
+    <Button
+        android:id="@+id/btnAddTimeReminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Time Reminder"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnClearReminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Clear Reminder"
+        android:layout_marginTop="8dp" />
+
+    <!-- Location reminder (uses phone's current location) -->
+    <Button
+        android:id="@+id/btnAddLocationReminder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Location Reminder"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/txtReminderInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:textSize="14sp"
+        android:text="No reminder set" />
+
+</LinearLayout>
