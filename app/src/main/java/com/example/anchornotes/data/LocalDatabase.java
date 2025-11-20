@@ -8,8 +8,13 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 @Database(
-        entities = {Note.class, Reminder.class},
-        version = 1,
+        entities = {
+                Note.class,
+                Reminder.class,
+                Tag.class,
+                NoteTag.class
+        },
+        version = 3,           // ⬅ IMPORTANT: bump version (2 → 3)
         exportSchema = false
 )
 @TypeConverters({Converters.class})
@@ -18,6 +23,7 @@ public abstract class LocalDatabase extends RoomDatabase {
     private static volatile LocalDatabase INSTANCE;
 
     public abstract NoteDao noteDao();
+    public abstract TagDao tagDao();   // ⬅ NEW
 
     public static LocalDatabase getInstance(Context context) {
         if (INSTANCE == null) {
@@ -28,8 +34,8 @@ public abstract class LocalDatabase extends RoomDatabase {
                                     LocalDatabase.class,
                                     "anchornotes.db"
                             )
-                            .allowMainThreadQueries() // OK for this class project, we'll keep things simple
-                            .fallbackToDestructiveMigration() // fine for class projects
+                            .allowMainThreadQueries() // OK for this class project
+                            .fallbackToDestructiveMigration() // wipe + recreate on schema change
                             .build();
                 }
             }

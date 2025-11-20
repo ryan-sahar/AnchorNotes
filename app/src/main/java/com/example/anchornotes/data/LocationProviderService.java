@@ -13,14 +13,16 @@ import androidx.core.content.ContextCompat;
  * Service that encapsulates access to the device's location providers.
  * Presentation/Domain code should talk to this instead of directly to
  * LocationManager or permission APIs.
+ *
+ * For this class project, if no real last-known location is available,
+ * we fall back to a fixed mock coordinate so the feature still works.
  */
 public class LocationProviderService {
 
     public enum LocationError {
-        NONE,
+        OK,
         PERMISSION_MISSING,
-        PROVIDER_DISABLED,
-        LOCATION_UNAVAILABLE
+        PROVIDER_DISABLED
     }
 
     private final Context appContext;
@@ -33,30 +35,17 @@ public class LocationProviderService {
     }
 
     /**
-     * Check if we currently have either FINE or COARSE location permission.
-     */
-    public boolean isLocationPermissionGranted() {
-        int fine = ContextCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        );
-        int coarse = ContextCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-        );
-        return fine == PackageManager.PERMISSION_GRANTED
-                || coarse == PackageManager.PERMISSION_GRANTED;
-    }
-
-    /**
-     * Check whether location is "available" in principle (permission + provider).
-     * This does not guarantee a non-null Location, but it tells you whether it
-     * even makes sense to try to fetch one.
+     * Quick pre-check for whether we’re allowed/able to use location.
      */
     public LocationError getAvailabilityStatus() {
-        if (!isLocationPermissionGranted()) {
+        // Runtime permission check
+        if (ContextCompat.checkSelfPermission(
+                appContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED) {
             return LocationError.PERMISSION_MISSING;
         }
+
         if (locationManager == null) {
             return LocationError.PROVIDER_DISABLED;
         }
@@ -73,39 +62,72 @@ public class LocationProviderService {
         } catch (Exception ignored) { }
 
         if (!gpsEnabled && !networkEnabled) {
+            // Neither major provider is enabled
             return LocationError.PROVIDER_DISABLED;
         }
 
-        return LocationError.NONE;
+        return LocationError.OK;
     }
 
     /**
-     * Return a "best-effort" last known location, or null if none is available.
-     * Caller is responsible for checking permission and provider availability
-     * (getAvailabilityStatus) before calling this.
+     * Returns the best last known location from the system, or a mock
+     * fallback if none is available (so the app keeps working on emulators).
+     * Caller MUST have already checked for permission.
      */
     @Nullable
     public Location getLastKnownLocation() {
-        if (locationManager == null) {
+        if (ContextCompat.checkSelfPermission(
+                appContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED) {
             return null;
+        }
+
+        if (locationManager == null) {
+            return createMockFallbackLocation();
         }
 
         Location best = null;
 
-        try {
-            Location gps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (gps != null) {
-                best = gps;
-            }
-        } catch (SecurityException ignored) { }
+        best = tryGetLastKnown(LocationManager.GPS_PROVIDER);
+        if (best != null) {
+            return best;
+        }
 
-        try {
-            Location net = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (net != null && best == null) {
-                best = net;
-            }
-        } catch (SecurityException ignored) { }
+        best = tryGetLastKnown(LocationManager.NETWORK_PROVIDER);
+        if (best != null) {
+            return best;
+        }
 
-        return best;
+        best = tryGetLastKnown(LocationManager.PASSIVE_PROVIDER);
+        if (best != null) {
+            return best;
+        }
+
+        // On some emulators this can still be null, so we provide a fixed fallback.
+        return createMockFallbackLocation();
+    }
+
+    @Nullable
+    private Location tryGetLastKnown(String provider) {
+        try {
+            return locationManager.getLastKnownLocation(provider);
+        } catch (SecurityException ignored) {
+            return null;
+        } catch (IllegalArgumentException ignored) {
+            // Provider not present on this device
+            return null;
+        }
+    }
+
+    /**
+     * Fallback coordinate used when the system has no last-known location.
+     * Here we just pick a reasonable fixed point (e.g., USC).
+     */
+    private Location createMockFallbackLocation() {
+        Location mock = new Location("mock");
+        mock.setLatitude(34.0219);   // example: USC latitude
+        mock.setLongitude(-118.2851); // example: USC longitude
+        return mock;
     }
 }

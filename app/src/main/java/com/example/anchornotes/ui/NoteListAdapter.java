@@ -1,8 +1,11 @@
 package com.example.anchornotes.ui;
 
+import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,122 +13,90 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.anchornotes.R;
 import com.example.anchornotes.data.Note;
-import com.example.anchornotes.data.Reminder;
-import com.example.anchornotes.data.ReminderType;
-import com.example.anchornotes.domain.ReminderManager;
+import com.example.anchornotes.data.NoteRepository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * RecyclerView adapter for the list of notes on the main screen.
- * Shows title, content preview, and (if present) a small indicator of
- * an active reminder type for that note.
+ * Adapter for the note list on the home screen.
+ * Now supports pinning notes and uses OnNoteClickListener
+ * so MainActivity doesn't need to change.
  */
 public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder> {
 
+    // This matches what MainActivity expects.
     public interface OnNoteClickListener {
         void onNoteClick(Note note);
     }
 
-    private final ReminderManager reminderManager;
+    private final Context context;
     private final OnNoteClickListener listener;
-    private final List<Note> notes = new ArrayList<>();
+    private List<Note> notes;
+    private final NoteRepository noteRepository;
 
-    public NoteListAdapter(ReminderManager reminderManager, OnNoteClickListener listener) {
-        this.reminderManager = reminderManager;
+    public NoteListAdapter(Context context, List<Note> notes, OnNoteClickListener listener) {
+        this.context = context;
+        this.notes = notes;
         this.listener = listener;
+        this.noteRepository = new NoteRepository(context);
     }
 
-    public void setNotes(List<Note> newNotes) {
-        notes.clear();
-        if (newNotes != null) {
-            notes.addAll(newNotes);
-        }
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public NoteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_note, parent, false);
-        return new NoteViewHolder(itemView);
+        View v = LayoutInflater.from(context).inflate(R.layout.item_note, parent, false);
+        return new NoteViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
         Note note = notes.get(position);
-        holder.bind(note, reminderManager, listener);
+
+        holder.txtTitle.setText(note.getTitle());
+        holder.txtPreview.setText(note.getContent());
+
+        // Pinned icon color
+        if (note.isPinned()) {
+            holder.imgPin.setColorFilter(Color.YELLOW);
+        } else {
+            holder.imgPin.setColorFilter(Color.GRAY);
+        }
+
+        // Toggle pin when star is tapped
+        holder.imgPin.setOnClickListener(v -> {
+            note.setPinned(!note.isPinned());
+            noteRepository.updateNote(note);
+            notifyDataSetChanged();
+        });
+
+        // Open note on row tap
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onNoteClick(note);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return notes.size();
+        return notes != null ? notes.size() : 0;
     }
 
-    static class NoteViewHolder extends RecyclerView.ViewHolder {
-
-        private final TextView txtTitle;
-        private final TextView txtContentPreview;
+    public static class NoteViewHolder extends RecyclerView.ViewHolder {
+        TextView txtTitle;
+        TextView txtPreview;
+        ImageView imgPin;
 
         public NoteViewHolder(@NonNull View itemView) {
             super(itemView);
-            txtTitle = itemView.findViewById(R.id.txtItemTitle);
-            txtContentPreview = itemView.findViewById(R.id.txtItemContentPreview);
-        }
-
-        public void bind(Note note,
-                         ReminderManager reminderManager,
-                         OnNoteClickListener listener) {
-
-            if (note == null) {
-                txtTitle.setText("(No title)");
-                txtContentPreview.setText("(No content)");
-                itemView.setOnClickListener(null);
-                return;
-            }
-
-            String title = note.getTitle();
-            String content = note.getContent();
-
-            // Determine reminder indicator, if any
-            String prefix = "";
-
-            if (reminderManager != null) {
-                UUID noteId = note.getId();
-                if (noteId != null) {
-                    Reminder reminder = reminderManager.getReminderForNote(noteId);
-                    if (reminder != null && reminder.isActive()) {
-                        if (reminder.getType() == ReminderType.TIME) {
-                            // Clock icon for time reminder
-                            prefix = "⏱ ";
-                        } else if (reminder.getType() == ReminderType.LOCATION) {
-                            // Pin icon for location reminder
-                            prefix = "📍 ";
-                        }
-                    }
-                }
-            }
-
-            if (title == null || title.isEmpty()) {
-                txtTitle.setText(prefix + "(Untitled)");
-            } else {
-                txtTitle.setText(prefix + title);
-            }
-
-            if (content == null || content.isEmpty()) {
-                txtContentPreview.setText("(No content)");
-            } else {
-                txtContentPreview.setText(content);
-            }
-
-            itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onNoteClick(note);
-                }
-            });
+            txtTitle = itemView.findViewById(R.id.txtNoteTitle);
+            txtPreview = itemView.findViewById(R.id.txtNoteContentPreview);
+            imgPin = itemView.findViewById(R.id.imgPin);
         }
     }
 }

@@ -25,6 +25,9 @@ public interface NoteDao {
     @Query("SELECT * FROM notes WHERE id = :id LIMIT 1")
     Note getNoteById(UUID id);
 
+    @Query("SELECT * FROM notes ORDER BY pinned DESC, updatedAt DESC")
+    List<Note> getAllNotesPinnedFirst();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertNote(Note note);
 
@@ -50,4 +53,5 @@ public interface NoteDao {
 
     @Delete
     void deleteReminder(Reminder reminder);
+
 }

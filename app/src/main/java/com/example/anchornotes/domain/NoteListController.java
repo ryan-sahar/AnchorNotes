@@ -37,7 +37,7 @@ public class NoteListController {
 
     /** Load all notes and deliver them back to the UI layer. */
     public void loadNotes() {
-        List<Note> notes = noteManager.getAllNotes();
+        List<Note> notes = noteManager.getAllNotes();   // use domain manager
         if (listener != null) {
             listener.onNotesLoaded(notes);
         }

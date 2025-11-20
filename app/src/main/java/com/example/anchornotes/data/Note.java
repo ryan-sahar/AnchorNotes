@@ -8,17 +8,6 @@ import androidx.room.PrimaryKey;
 import java.util.Date;
 import java.util.UUID;
 
-/**
- * Note entity (matches design doc 5.1.1).
- *
- * Attributes:
- *  - id: UUID
- *  - title: String
- *  - content: String
- *  - createdAt: Date
- *  - updatedAt: Date
- *  - reminderId: UUID? (nullable)
- */
 @Entity(tableName = "notes")
 public class Note {
 
@@ -32,24 +21,55 @@ public class Note {
     private Date createdAt;
     private Date updatedAt;
 
+    // Existing reminder field
     @Nullable
     private UUID reminderId;
 
-    // Empty constructor required by Room
+    // ----------------------------------------------------
+    // NEW FIELDS FOR PROJECT D
+    // ----------------------------------------------------
+
+    // Pinned notes (Feature 2b)
+    private boolean pinned = false;
+
+    // Context location (Feature 2c)
+    @Nullable
+    private Double locationLat;
+    @Nullable
+    private Double locationLng;
+
+    // Attachments (Feature 1)
+    @Nullable
+    private String photoUri;
+
+    @Nullable
+    private String audioUri;
+
+    // Relevant Notes (Feature 4)
+    @Nullable
+    private Long lastRelevantTriggeredAt;
+
+    @Nullable
+    private String relevantType; // "TIME" or "GEOFENCE"
+
+    // ----------------------------------------------------
+
     public Note() {
     }
 
-    // Convenience constructor used by NoteManager.createNote(...)
     public Note(String title, String content) {
         this.id = UUID.randomUUID();
         this.title = title;
         this.content = content;
+
         Date now = new Date();
         this.createdAt = now;
         this.updatedAt = now;
     }
 
-    // ----- Getters / Setters -----
+    // ----------------------------------------------------
+    // GETTERS / SETTERS
+    // ----------------------------------------------------
 
     @NonNull
     public UUID getId() {
@@ -60,44 +80,50 @@ public class Note {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public String getContent() {
-        return content;
-    }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+    public Date getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
+    @Nullable
+    public UUID getReminderId() { return reminderId; }
+    public void setReminderId(@Nullable UUID reminderId) { this.reminderId = reminderId; }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+    // ------------------ NEW FIELDS ----------------------
 
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
+    public boolean isPinned() { return pinned; }
+    public void setPinned(boolean pinned) { this.pinned = pinned; }
 
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
+    @Nullable
+    public Double getLocationLat() { return locationLat; }
+    public void setLocationLat(@Nullable Double locationLat) { this.locationLat = locationLat; }
+
+    @Nullable
+    public Double getLocationLng() { return locationLng; }
+    public void setLocationLng(@Nullable Double locationLng) { this.locationLng = locationLng; }
+
+    @Nullable
+    public String getPhotoUri() { return photoUri; }
+    public void setPhotoUri(@Nullable String photoUri) { this.photoUri = photoUri; }
+
+    @Nullable
+    public String getAudioUri() { return audioUri; }
+    public void setAudioUri(@Nullable String audioUri) { this.audioUri = audioUri; }
+
+    @Nullable
+    public Long getLastRelevantTriggeredAt() { return lastRelevantTriggeredAt; }
+    public void setLastRelevantTriggeredAt(@Nullable Long lastRelevantTriggeredAt) {
+        this.lastRelevantTriggeredAt = lastRelevantTriggeredAt;
     }
 
     @Nullable
-    public UUID getReminderId() {
-        return reminderId;
-    }
-
-    public void setReminderId(@Nullable UUID reminderId) {
-        this.reminderId = reminderId;
-    }
+    public String getRelevantType() { return relevantType; }
+    public void setRelevantType(@Nullable String relevantType) { this.relevantType = relevantType; }
 }

@@ -7,21 +7,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.anchornotes.data.Note;
 import com.example.anchornotes.data.Reminder;
 import com.example.anchornotes.data.ReminderType;
-import com.example.anchornotes.domain.ReminderManager;
+import com.example.anchornotes.data.Tag;
 import com.example.anchornotes.domain.NoteListController;
+import com.example.anchornotes.domain.ReminderManager;
+import com.example.anchornotes.domain.TagManager;
 import com.example.anchornotes.ui.NoteListAdapter;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements
@@ -33,10 +40,12 @@ public class MainActivity extends AppCompatActivity implements
     private Button btnFilter;
     private TextView txtNotes;
     private RecyclerView recyclerNotes;
+    private EditText edtSearch;
 
     private ReminderManager reminderManager;
     private NoteListController noteListController;
     private NoteListAdapter adapter;
+    private TagManager tagManager;
 
     // Sort + Filter modes
     private enum SortMode {
@@ -52,11 +61,13 @@ public class MainActivity extends AppCompatActivity implements
         HAS_REMINDER,
         TIME_ONLY,
         LOCATION_ONLY,
-        NO_REMINDER
+        NO_REMINDER,
+        TODAY
     }
 
     private SortMode currentSortMode = SortMode.NEWEST_FIRST;
     private FilterMode currentFilterMode = FilterMode.ALL;
+    private String currentSearchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements
         // Init managers/controllers
         reminderManager = new ReminderManager(this);
         noteListController = new NoteListController(this, this);
+        tagManager = new TagManager(this);
 
         // Init views
         btnAddNote = findViewById(R.id.btnAddNote);
@@ -73,10 +85,11 @@ public class MainActivity extends AppCompatActivity implements
         btnFilter = findViewById(R.id.btnFilter);
         txtNotes = findViewById(R.id.txtNotes);
         recyclerNotes = findViewById(R.id.recyclerNotes);
+        edtSearch = findViewById(R.id.edtSearch);
 
         // Set up RecyclerView
         recyclerNotes.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new NoteListAdapter(reminderManager, this);
+        adapter = new NoteListAdapter(this, new ArrayList<>(), this);
         recyclerNotes.setAdapter(adapter);
 
         // Add note button
@@ -87,6 +100,27 @@ public class MainActivity extends AppCompatActivity implements
 
         // Filter button
         btnFilter.setOnClickListener(v -> showFilterDialog());
+
+        // Search text changes
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentSearchQuery = s != null ? s.toString() : "";
+                updateNotesUI();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
+        Button btnToday = findViewById(R.id.btnToday);
+        btnToday.setOnClickListener(v -> {
+            currentFilterMode = FilterMode.TODAY;
+            updateNotesUI();
+        });
 
         // Initial load
         updateNotesUI();
@@ -141,10 +175,10 @@ public class MainActivity extends AppCompatActivity implements
 
         List<Note> filtered = new ArrayList<>();
 
-        // Apply filtering
+        // Apply filtering + search
         for (Note note : allNotes) {
             if (note == null) continue;
-            if (passesFilter(note)) {
+            if (passesFilter(note) && matchesSearch(note)) {
                 filtered.add(note);
             }
         }
@@ -153,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements
         Collections.sort(filtered, getComparator());
 
         // Update count label with filter hint
-        txtNotes.setText("Total notes: " + filtered.size());
+        txtNotes.setText("Matching notes: " + filtered.size());
 
         // Push to adapter
         adapter.setNotes(filtered);
@@ -246,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // ------------------------------------------------------------------------
-    // Filtering + sorting helpers
+    // Filtering + search + sorting helpers
     // ------------------------------------------------------------------------
 
     private boolean passesFilter(Note note) {
@@ -278,10 +312,64 @@ public class MainActivity extends AppCompatActivity implements
             case NO_REMINDER:
                 return reminder == null || !reminder.isActive();
 
+            case TODAY:
+                return isToday(note.getUpdatedAt());
+
             case ALL:
             default:
                 return true;
         }
+    }
+
+    private boolean isToday(Date date) {
+        if (date == null) return false;
+
+        Calendar noteCal = Calendar.getInstance();
+        noteCal.setTime(date);
+
+        Calendar today = Calendar.getInstance();
+
+        return noteCal.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                && noteCal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
+    }
+
+
+    /**
+     * Returns true if the note matches the current search query
+     * in title, content, or tag names.
+     */
+    private boolean matchesSearch(Note note) {
+        if (currentSearchQuery == null || currentSearchQuery.trim().isEmpty()) {
+            return true; // no active search
+        }
+
+        String q = currentSearchQuery.trim().toLowerCase(Locale.US);
+
+        // Title/content
+        String title = safeTitle(note.getTitle()).toLowerCase(Locale.US);
+        String content = note.getContent() != null
+                ? note.getContent().toLowerCase(Locale.US)
+                : "";
+
+        if (title.contains(q) || content.contains(q)) {
+            return true;
+        }
+
+        // Tags
+        if (tagManager != null && note.getId() != null) {
+            List<Tag> tags = tagManager.getTagsForNote(note.getId());
+            if (tags != null) {
+                for (Tag t : tags) {
+                    if (t != null && t.getName() != null &&
+                            t.getName().toLowerCase(Locale.US).contains(q)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Could extend to location text later if needed
+        return false;
     }
 
     private Comparator<Note> getComparator() {

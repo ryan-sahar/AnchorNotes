@@ -1,68 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
-    <EditText
-        android:id="@+id/edtTitle"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Title" />
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/edtContent"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="top"
-        android:hint="Content"
-        android:inputType="textMultiLine"
-        android:minLines="5" />
+        <!-- Note title -->
+        <EditText
+            android:id="@+id/edtTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Title"
+            android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Save Note" />
+        <!-- Note content -->
+        <EditText
+            android:id="@+id/edtContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:hint="Content"
+            android:inputType="textMultiLine"
+            android:minLines="6"
+            android:layout_marginTop="8dp" />
 
-    <Button
-        android:id="@+id/btnDelete"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Delete Note"
-        android:layout_marginTop="8dp" />
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="#CCCCCC" />
 
-    <!-- Time reminder controls -->
-    <Button
-        android:id="@+id/btnAddTimeReminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Time Reminder"
-        android:layout_marginTop="8dp" />
+        <!-- Tags display + edit -->
+        <TextView
+            android:id="@+id/txtTags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tags: none"
+            android:paddingTop="8dp"
+            android:textSize="14sp" />
 
-    <Button
-        android:id="@+id/btnClearReminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Clear Reminder"
-        android:layout_marginTop="8dp" />
+        <Button
+            android:id="@+id/btnEditTags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edit Tags"
+            android:layout_marginTop="4dp" />
 
-    <!-- Location reminder (uses phone's current location) -->
-    <Button
-        android:id="@+id/btnAddLocationReminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Location Reminder"
-        android:layout_marginTop="12dp" />
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="#CCCCCC" />
 
-    <TextView
-        android:id="@+id/txtReminderInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:textSize="14sp"
-        android:text="No reminder set" />
+        <!-- NOTE LOCATION SECTION -->
+        <TextView
+            android:id="@+id/txtNoteLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Location: none"
+            android:paddingTop="8dp"
+            android:textSize="14sp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnUpdateNoteLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Attach / Update Note Location"
+            android:layout_marginTop="4dp" />
+
+        <Button
+            android:id="@+id/btnClearNoteLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remove Note Location"
+            android:layout_marginTop="4dp" />
+
+        <Button
+            android:id="@+id/btnViewNoteLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Note Location on Map"
+            android:layout_marginTop="4dp" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="#CCCCCC" />
+
+        <!-- Save / delete -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Note"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete Note"
+            android:layout_marginTop="4dp" />
+
+        <!-- Time reminder controls -->
+        <Button
+            android:id="@+id/btnAddTimeReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Time Reminder"
+            android:layout_marginTop="8dp" />
+
+        <!-- Location reminder (geofence) -->
+        <Button
+            android:id="@+id/btnAddLocationReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Location Reminder"
+            android:layout_marginTop="4dp" />
+
+        <!-- Clear reminder (now AFTER both add buttons) -->
+        <Button
+            android:id="@+id/btnClearReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear Reminder"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/txtReminderInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:textSize="14sp"
+            android:text="No reminder set" />
+
+    </LinearLayout>
+</ScrollView>

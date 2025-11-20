@@ -64,4 +64,8 @@ public class NoteRepository {
     public void deleteReminder(Reminder reminder) {
         noteDao.deleteReminder(reminder);
     }
+
+    public List<Note> getNotesPinnedFirst() {
+        return noteDao.getAllNotesPinnedFirst();
+    }
 }
